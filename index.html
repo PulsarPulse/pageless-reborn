@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pageless Reborn</title>
+    <style>
+        :root {
+            --bg-color: #0f1117;
+            --card-bg: rgba(22, 26, 38, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-color: #a78bfa;
+            --accent-hover: #c4b5fd;
+            --input-bg: rgba(15, 17, 23, 0.6);
+            --input-border: rgba(255, 255, 255, 0.12);
+            --particle-color: rgba(167, 139, 250, 0.25);
+            --badge-bg: rgba(167, 139, 250, 0.15);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.06);
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --input-bg: rgba(241, 245, 249, 0.8);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --particle-color: rgba(99, 102, 241, 0.15);
+            --badge-bg: rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="pink"] {
+            --bg-color: #fff1f2;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(244, 63, 94, 0.15);
+            --text-color: #881337;
+            --text-muted: #be123c;
+            --accent-color: #f43f5e;
+            --accent-hover: #e11d48;
+            --input-bg: rgba(255, 228, 230, 0.6);
+            --input-border: rgba(244, 63, 94, 0.2);
+            --particle-color: rgba(244, 63, 94, 0.2);
+            --badge-bg: rgba(244, 63, 94, 0.1);
+        }
+
+        [data-theme="green"] {
+            --bg-color: #f0fdf4;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(34, 197, 94, 0.15);
+            --text-color: #14532d;
+            --text-muted: #166534;
+            --accent-color: #22c55e;
+            --accent-hover: #16a34a;
+            --input-bg: rgba(220, 252, 231, 0.6);
+            --input-border: rgba(34, 197, 94, 0.2);
+            --particle-color: rgba(34, 197, 94, 0.2);
+            --badge-bg: rgba(34, 197, 94, 0.1);
+        }
+
+        [data-theme="blue"] {
+            --bg-color: #f0f9ff;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(56, 189, 248, 0.15);
+            --text-color: #0c4a6e;
+            --text-muted: #0369a1;
+            --accent-color: #0ea5e9;
+            --accent-hover: #0284c7;
+            --input-bg: rgba(224, 242, 254, 0.6);
+            --input-border: rgba(56, 189, 248, 0.2);
+            --particle-color: rgba(14, 165, 233, 0.2);
+            --badge-bg: rgba(14, 165, 233, 0.1);
+        }
+
+        [data-theme="halloween"] {
+            --bg-color: #0b090f;
+            --card-bg: rgba(26, 18, 38, 0.8);
+            --card-border: rgba(249, 115, 22, 0.25);
+            --text-color: #fdf4ff;
+            --text-muted: #d8b4fe;
+            --accent-color: #fb923c;
+            --accent-hover: #f97316;
+            --input-bg: rgba(18, 12, 28, 0.7);
+            --input-border: rgba(249, 115, 22, 0.3);
+            --particle-color: rgba(251, 146, 60, 0.25);
+            --badge-bg: rgba(251, 146, 60, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 3rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Particle Canvas */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Centered Rounded Header */
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 3rem;
+            gap: 1.25rem;
+        }
+
+        .title-badge {
+            background: var(--badge-bg);
+            color: var(--accent-color);
+            padding: 0.4rem 1.2rem;
+            border-radius: 12000px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            border: 1px solid var(--card-border);
+        }
+
+        h1 {
+            font-size: 2.60rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .byline {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Fully Rounded Search & Theme Bar */
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            width: 100%;
+            max-width: 550px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        select, input {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+            padding: 0.75rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            outline: none;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        input {
+            flex: 1;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--particle-color);
+        }
+
+        /* Sections & Grids */
+        #content-area {
+            width: 120%;
+        }
+
+        .category-section {
+            margin-bottom: 3rem;
+            width: 100%;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--accent-color);
+            letter-spacing: 0.03em;
+            text-align: center;
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.25rem;
+        }
+
+        /* Ultra-Round Glass Cards */
+        .link-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .link-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-thumb {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 1rem;
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .link-name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.01em;
+        }
+
+        .mirror-count {
+            font-size: 0.75rem;
+            background: var(--badge-bg);
+            color: var(--accent-color);
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        /* Multiple Mirror Links Container */
+        .mirror-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .mirror-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            padding: 0.5rem 0.85rem;
+            border-radius: 1rem;
+            gap: 0.5rem;
+        }
+
+        .mirror-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-color);
+            min-width: 60px;
+        }
+
+        .mirror-url {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .mirror-actions {
+            display: flex;
+            gap: 0.35rem;
+        }
+
+        /* Pill Buttons */
+        .btn {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--card-border);
+        }
+
+        /* Stealth Mode Overlay */
+        #cloak-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .cloak-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 3rem 2rem;
+            border-radius: 2rem;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cloak-card h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .cloak-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+            input, select {
+                width: 100%;
+            }
+            .link-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Stealth Overlay -->
+    <div id="cloak-modal">
+        <div class="cloak-card">
+            <span class="title-badge">Stealth Mode</span>
+            <h2>Pageless Reborn</h2>
+            <p>Click below to initialize and launch the platform inside an isolated about:blank container window.</p>
+            <button class="btn" id="launch-cloak-btn" style="padding: 0.85rem 1.75rem; font-size: 0.95rem; margin-top: 0.5rem;">Launch About:Blank</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <span class="title-badge">Directory Hub</span>
+            <div class="brand">
+                <h1>Pageless Reborn</h1>
+                <p class="byline">- by Lumi</p>
+            </div>
+            <div class="controls">
+                <input type="text" id="search-input" placeholder="Search websites or URLs...">
+                <select id="theme-select">
+                    <option value="dark">Dark Pastel</option>
+                    <option value="light">Light Pastel</option>
+                    <option value="pink">Pink Pastel</option>
+                    <option value="green">Green Pastel</option>
+                    <option value="blue">Blue Pastel</option>
+                    <option value="halloween">🎃 Halloween</option>
+                </select>
+            </div>
+        </header>
+
+        <main id="content-area">
+            <!-- Dynamic Sections Inject Here -->
+        </main>
+    </div>
+
+    <script>
+        // ==========================================
+        // ADD YOUR CUSTOM CATEGORIES & LINKS HERE!
+        // ==========================================
+const linkData = [
+    // --- CATEGORY 1 ---
+    {
+        category: "Proxies",
+        items: [
+            { 
+                name: "Cherri (Proxy)",
+                mirrors: [
+                    { label: "Cherri", url: "https://cherribynova.s3.us-east-1.amazonaws.com/svg-main+(1)/svg-main/index.html" },
+                    { label: "Cherri 1", url: "https://cherribynova.s3.us-east-1.amazonaws.com/svg-main+(10)/svg-main/index.html" },
+                    { label: "Cherri 2", url: "https://cherribynova.s3.us-east-1.amazonaws.com/svg-main+(11)/svg-main/index.html" },
+                    { label: "Cherri 3", url: "https://cherribynova.s3.us-east-1.amazonaws.com/svg-main+(12)/svg-main/index.html" },
+                    { label: "Cherri 4", url: "https://cherribynova.s3.us-east-1.amazonaws.com/svg-main+(13)/svg-main/index.html" }
+                ] 
+            },
+            { 
+                name: "RammerHead",
+                mirrors: [
+                    { label: "Rammerhead", url: "https://rammer.nana.ghettohotels.com/" },
+                    { label: "Rammerhead 1", url: "https://rc-1207.shiwo.org/" },
+                    { label: "Rammerhead 2", url: "https://rammer.yosshy.halftech.com/" },
+                    { label: "Rammerhead 3", url: "https://rammer.yosshy.jackng.net/" },
+                    { label: "Rammerhead 4", url: "https://rammer.yosshy.johnandjanawilliams.us/" }
+                ] 
+            },
+            {
+                name: "Interstellar",
+                mirrors: [
+                    { label: "Interstellar", url: "https://jxrv.b-cdn.net/" },
+                    { label: "Interstellar 1", url: "https://tided.b-cdn.net/" },
+                    { label: "Interstellar 2", url: "https://infer.b-cdn.net/" },
+                    { label: "Interstellar 3", url: "https://aloe.b-cdn.net/" },
+                    { label: "Interstellar 4", url: "https://1uam.b-cdn.net/" }
+                ]
+            },
+            {
+                name: "DayDreamX",
+                mirrors: [
+                    { label: "DayDreamX", url: "https://cdn.jsdelivr.net/gh/stockable/dd-static/dist/index.svg" },
+                    { label: "DayDreamX 1", url: "https://quantil.jsdelivr.net/gh/stockable/dd-static/dist/index.svg" },
+                    { label: "DayDreamX 2", url: "https://cdn.jsdelivr.net/gh/TwiLabs/history/dist/index.svg?id=uD8NFULhzWWSYZddBUcecACNMr56HKsj" },
+                    { label: "DayDreamX 3", url: "https://cdn.jsdelivr.net/gh/TwiLabs/history/dist/index.svg?id=B8hgMBEuJxyQ4JmZCpuUQn25uXrNCdBK" },
+                    { label: "DayDreamX 4", url: "https://cdn.jsdelivr.net/gh/TwiLabs/history/dist/index.svg?id=YXmaq7hPN93QDfWM5zkw54mrnKNGcKwK" }
+                ]
+            }
+        ]
+    },
+
+    // --- CATEGORY 2 ---
+    {
+        category: "Games",
+        items: [
+            { 
+                name: "Gn-Math",
+                mirrors: [
+                    { label: "Gn-Math", url: "https://cdn.jsdelivr.net/gh/stockable/sites@main/gnmath.svg" },
+                    { label: "Gn-Math 1", url: "https://cdn.inksoft.com/images/clipart/svg/2570/designer2103988394847715328under/gnmathe471d.svg" },
+                    { label: "Gn-Math 2", url: "https://cdn.inksoft.com/images/clipart/svg/2570/designer2103988394847715328under/gnmath09447.svg" },
+                    { label: "Gn-Math 3", url: "https://script.google.com/macros/s/AKfycbyAQJyD3ehBIMbLmMub_3-fSGlV497f8Yi9WYCDgS8zTcSzMe4vr2lz0qc4LaegbB0C4A/exec" },
+                    { label: "Gn-Math 4", url: "https://cdn.inksoft.com/images/clipart/svg/2570/designer2103988394847715328under/gnmath372db.svg" }
+                ] 
+            },
+            { 
+                name: "StrongDogXP",
+                mirrors: [
+                    { label: "StrongDogXP", url: "http://homework.assignment.math.engineering.project.tsirepfirm.com" },
+                    { label: "StrongDogXP 1", url: "http://vocabulary.learning.literature.english.chemistry.sequoiapartners.com" },
+                    { label: "StrongDogXP 2", url: "http://vocabulary.learning.writing.grammar.project.oneworldcollections.com" },
+                    { label: "StrongDogXP 3", url: "http://music.technology.drama.english.grammar.aisasgroup.org" },
+                    { label: "StrongDogXP 4", url: "http://seminar.physics.learning.math.chemistry.aclize.com" }
+                ] 
+            },
+            {
+                name: "Duck Math",
+                mirrors: [
+                    { label: "Duck Math", url: "https://raw.githubusercontent.com/dorianhagar506-coder/duckisducky-miy57l/main/DuckMath-3-mb54.svg" },
+                    { label: "Duck Math 1", url: "https://originfastly.jsdelivr.net/gh/dorianhagar506-coder/duckisducky-miy57l@main/DuckMath-2-bl9o.svg" },
+                    { label: "Duck Math 2", url: "https://raw.githubusercontent.com/dorianhagar506-coder/duckisducky-miy57l/main/DuckMath-2-bl9o.svg" },
+                    { label: "Duck Math 3", url: "https://cdn.jsdelivr.net/gh/dorianhagar506-coder/duckisducky-miy57l@main/DuckMath-2-bl9o.svg" },
+                    { label: "Duck Math 4", url: "https://cdn.jsdelivr.net/gh/dorianhagar506-coder/duckisducky-miy57l@main/DuckMath-1-ipg5.svg" }
+                ]
+            }
+        ]
+    }
+];
+
+        // --- ABOUT:BLANK CLOAK LOGIC ---
+        const isCloaked = window.location.protocol === 'about:';
+
+        if (isCloaked) {
+            document.getElementById('cloak-modal').remove();
+        } else {
+            document.getElementById('launch-cloak-btn').addEventListener('click', () => {
+                openInAboutBlank(window.location.href, true);
+            });
+        }
+
+        // --- FUNCTION TO OPEN ANY URL OR FRAME IN ABOUT:BLANK ---
+        function openInAboutBlank(targetUrl, embedSelf = false) {
+            try {
+                const win = window.open('about:blank', '_blank');
+                if (!win || win.closed || typeof win.closed == 'undefined') {
+                    alert('Pop-up blocked! Please allow pop-ups for this site.');
+                    return;
+                }
+                const doc = win.document;
+                doc.open();
+                
+                if (embedSelf) {
+                    doc.write(document.documentElement.outerHTML);
+                } else {
+                    // Full-screen iframe container for external links
+                    doc.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>About Blank Window</title>
+                            <style>
+                                * { margin: 0; padding: 0; box-sizing: border-box; }
+                                html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+                                iframe { width: 100%; height: 100%; border: none; }
+                            </style>
+                        </head>
+                        <body>
+                            <iframe src="${targetUrl}"></iframe>
+                        </body>
+                        </html>
+                    `);
+                }
+                
+                doc.close();
+                if (embedSelf) {
+                    window.location.replace('https://www.google.com');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // --- PARTICLE BACKGROUND ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.speedY = (Math.random() - 0.5) * 0.3;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--particle-color').trim();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            const count = Math.floor((window.innerWidth * window.innerHeight) / 16000);
+            for (let i = 0; i < count; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+
+        initParticles();
+        animateParticles();
+
+        // --- RENDER FUNCTION ---
+        const contentArea = document.getElementById('content-area');
+        const searchInput = document.getElementById('search-input');
+
+        function renderLinks(filter = '') {
+            contentArea.innerHTML = '';
+            const query = filter.toLowerCase();
+
+            linkData.forEach(cat => {
+                const filteredItems = cat.items.filter(item => {
+                    const matchName = item.name.toLowerCase().includes(query);
+                    const matchUrl = item.mirrors.some(m => m.url.toLowerCase().includes(query) || m.label.toLowerCase().includes(query));
+                    return matchName || matchUrl;
+                });
+
+                if (filteredItems.length === 0) return;
+
+                const section = document.createElement('div');
+                section.className = 'category-section';
+
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = cat.category;
+                section.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'link-grid';
+
+                filteredItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'link-card';
+
+                    const imageHTML = item.image ? 
+                        `<img class="card-thumb" src="${item.image}" alt="${item.name}" onerror="this.style.display='none'">` : '';
+
+                    let mirrorsHTML = item.mirrors.map(m => `
+                        <div class="mirror-row">
+                            <span class="mirror-label">${m.label}</span>
+                            <span class="mirror-url">${m.url}</span>
+                            <div class="mirror-actions">
+                                <a href="${m.url}" target="_blank" rel="noopener noreferrer" class="btn">Open</a>
+                                <button class="btn btn-secondary about-blank-btn" data-url="${m.url}">About:Blank</button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    card.innerHTML = `
+                        ${imageHTML}
+                        <div class="card-header">
+                            <div class="link-name">${item.name}</div>
+                            <span class="mirror-count">${item.mirrors.length} Link${item.mirrors.length > 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="mirror-list">
+                            ${mirrorsHTML}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                section.appendChild(grid);
+                contentArea.appendChild(section);
+            });
+
+            // Bind About:Blank triggers
+            document.querySelectorAll('.about-blank-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const url = e.target.getAttribute('data-url');
+                    openInAboutBlank(url);
+                });
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => renderLinks(e.target.value));
+
+        // --- THEME ENGINE ---
+        const themeSelect = document.getElementById('theme-select');
+        const savedTheme = localStorage.getItem('pageless_theme') || 'dark';
+        
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeSelect.value = savedTheme;
+
+        themeSelect.addEventListener('change', (e) => {
+            const theme = e.target.value;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('pageless_theme', theme);
+        });
+
+        renderLinks();
+    </script>
+</body>
+</html>
